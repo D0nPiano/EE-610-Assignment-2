@@ -1,1 +1,12 @@
-Data/
+*.pyc
+checkpoint/
+sample/
+*.npy
+.idea/
+logs/
+test/
+Models/
+*.tar.gz
+*.pptx
+data/img_clean_pats.npy
+old_logs/
