@@ -1,7 +1,6 @@
 import time
 
 from utils import *
-from pyblur.PsfBlur import PsfBlur_random
 
 
 def dncnn(input, is_training=True, output_channels=1):
@@ -22,9 +21,6 @@ def use_psf(element):
     element = element * 2
     return element
 
-def blur_image(image_element):
-    return PsfBlur_random(image_element)
-
 class denoiser(object):
     def __init__(self, sess, input_c_dim=1, sigma=25, batch_size=128):
         self.sess = sess
@@ -35,30 +31,13 @@ class denoiser(object):
                                  name='clean_image')
         self.is_training = tf.placeholder(tf.bool, name='is_training')
 
-        #self.X = self.Y_ + tf.random_normal(shape=tf.shape(self.Y_), stddev=self.sigma / 255.0)  # noisy images
-        # self.X = self.Y_ + tf.truncated_normal(shape=tf.shape(self.Y_), stddev=self.sigma / 255.0)  # noisy images
-
         # point spread function
-
         cur_img = self.Y_
-        #print("image", cur_img.shape)
-        #kernel = tf.gather(psfDictionary, psfid)
-
-
-
-        #elems = tf.convert_to_tensor(psfDictionary)
-        #tf.random_shuffle(psfDictionary)
-        #kernel = elems[tf.cast(psfid[0])].eval()
         kernel = tf.random_uniform([10, 10], minval=0, maxval=1.0, dtype=tf.float32)
         kernel = kernel / tf.reduce_sum(kernel) 
         kernel = tf.expand_dims(kernel, -1)
         kernel = tf.expand_dims(kernel, -1)
 
-        #kernel = psfDictionary[psfid]
-        #kernel = np.array(kernel, dtype="float32")
-        #print("kernel", kernel.shape)
-        #cur_img = np.array(cur_img, dtype="float32")
-        #kernel = np.array(kernel, dtype="float32")
         blurred_Y_ = tf.nn.conv2d(cur_img, kernel, [1, 1, 1, 1], 'SAME')
 
 
@@ -198,5 +177,6 @@ class denoiser(object):
             psnr_sum += psnr
             save_images(os.path.join(save_dir, 'noisy%d.png' % idx), noisyimage)
             save_images(os.path.join(save_dir, 'denoised%d.png' % idx), outputimage)
+
         avg_psnr = psnr_sum / len(test_files)
         print("--- Average PSNR %.2f ---" % avg_psnr)
